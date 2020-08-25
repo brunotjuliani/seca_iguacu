@@ -9,19 +9,21 @@ import scipy.stats as stats
 #INPUTS
 dir_secas = "/home/bruno/Documentos/Seca_Iguacu"
 os.chdir(dir_secas)
-serie_original = pd.read_csv('vazoes_uva.csv', sep = ';', decimal=',')
-nome_estacao = 'UVA'
+serie_original = pd.read_csv('dados_estacoes/pontilhao_tratada.csv', sep = ',', decimal='.')
+nome_estacao = 'Pontilhao'
 Percentil = 95
-tc = 14 #tempo entre eventos distintos
+tc = 10 #tempo entre eventos distintos
 dc = 5 #tempo minimo de evento
 
 #FORMATA SERIE ORIGINAL
-serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
+serie_original.columns = ['data', 'q_m3s_corr']
+#serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
 serie_original['data'] = pd.to_datetime(serie_original['data'], format = '%Y-%m-%d')
 serie_original['mes-dia'] = pd.to_datetime(serie_original['data'], format = "%Y-%m-%d").dt.strftime("%m-%d")
 serie_original["mes"] = pd.DatetimeIndex(serie_original['data']).month
 serie_original["dia"] = pd.DatetimeIndex(serie_original['data']).day
 #print(serie_original)
+
 
 #SERIE THRESHOLDS
 Q_Percentil = 'Q'+str(Percentil)
