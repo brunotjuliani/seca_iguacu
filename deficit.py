@@ -9,17 +9,20 @@ import scipy.stats as stats
 #INPUTS
 dir_secas = "/home/bruno/Documentos/Seca_Iguacu"
 os.chdir(dir_secas)
-serie_original = pd.read_csv('dados_estacoes/pontilhao_tratada.csv', sep = ',', decimal='.')
+serie_original = pd.read_csv('Dados_Estacoes/Pontilhao_vazao_tratada.csv',
+                              sep = ',', decimal='.', header = 0)
+serie_original
 nome_estacao = 'Pontilhao'
 Percentil = 95
 tc = 10 #tempo entre eventos distintos
 dc = 5 #tempo minimo de evento
 
 #FORMATA SERIE ORIGINAL
-serie_original.columns = ['data', 'q_m3s_corr']
-#serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
+#serie_original.columns = ['data', 'q_m3s_corr']
+serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
 serie_original['data'] = pd.to_datetime(serie_original['data'], format = '%Y-%m-%d')
-serie_original['mes-dia'] = pd.to_datetime(serie_original['data'], format = "%Y-%m-%d").dt.strftime("%m-%d")
+serie_original['mes-dia'] = pd.to_datetime(serie_original['data'],
+                                           format = "%Y-%m-%d").dt.strftime("%m-%d")
 serie_original["mes"] = pd.DatetimeIndex(serie_original['data']).month
 serie_original["dia"] = pd.DatetimeIndex(serie_original['data']).day
 #print(serie_original)
@@ -45,7 +48,7 @@ for d in Thresholds.index:
 print(Thresholds)
 
 #EXPORTA THRESHOLD
-Thresholds.to_csv(nome_estacao+'_thresholds_'+Q_Percentil+'.csv', sep = ';')
+Thresholds.to_csv(nome_estacao+'_thresholds_'+Q_Percentil+'.csv')
 
 #CALCULO DEFICIT
 serie_modificada = serie_original
@@ -97,6 +100,7 @@ for indice in eventos_deficit.index:
         indexEventoAgrupado = indexEventoAgrupado + 1
         eventos_agrupados.loc[indexEventoAgrupado] = eventos_deficit.loc[indice]
 eventos_agrupados.drop(eventos_agrupados[eventos_agrupados['duracao'] <= 5].index, inplace = True)
+eventos_agrupados = eventos_agrupados.reset_index(drop=True)
 print(eventos_agrupados)
 
 #EXPORTA EVENTOS IDENTIFICADOS
