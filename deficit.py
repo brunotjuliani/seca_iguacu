@@ -7,28 +7,25 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 #INPUTS
-dir_secas = "/home/bruno/Documentos/Seca_Iguacu"
-dir_eventos_series_curtas = "/home/bruno/Documentos/Seca_Iguacu/Eventos_Series_Curtas"
+dir_secas = "/home/bruno/Documentos/Seca_Iguacu/Dados_Estacoes"
 os.chdir(dir_secas)
-estacoes = [#'65035000_Porto_Amazonas',
-            #'65060000_Sao_Mateus_do_Sul',
-            #'65100000_Rio_Negro',
-            #'65155000_Sao_Bento',
-            #'65208001_Pontilhao',
-            'vazoes_uva'
+estacoes = ['Porto_Amazonas',
+            'Sao_Mateus_Sul',
+            'Rio_Negro',
+            'Uniao_da_Vitoria'
             ]
 for estacao in estacoes:
     os.chdir(dir_secas)
     #serie_original = pd.read_csv('Dados_Estacoes/'+estacao+'_vazao_tratada.csv',
     #                              sep = ',', decimal='.', header = 0)
-    serie_original = pd.read_csv('vazoes_uva.csv', sep = ',', decimal = '.')
+    serie_original = pd.read_csv(estacao+'_preenchimento.csv', sep = ',', decimal = '.')
     nome_estacao = estacao
     Percentil = 95
     tc = 10 #tempo entre eventos distintos
     dc = 5 #tempo minimo de evento
 
     #FORMATA SERIE ORIGINAL
-    serie_original.columns = ['data', 'q_m3s_corr']
+    serie_original.columns = ['data','q_bruto', 'q_m3s_corr']
     #serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
     serie_original['data'] = pd.to_datetime(serie_original['data'], format = '%Y-%m-%d')
     serie_original['mes-dia'] = pd.to_datetime(serie_original['data'],
