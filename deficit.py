@@ -18,15 +18,15 @@ for estacao in estacoes:
     os.chdir(dir_secas)
     #serie_original = pd.read_csv('Dados_Estacoes/'+estacao+'_vazao_tratada.csv',
     #                              sep = ',', decimal='.', header = 0)
-    serie_original = pd.read_csv(estacao+'_preenchimento.csv', sep = ',', decimal = '.')
+    serie_original = pd.read_csv(estacao+'_final.csv', sep = ',', decimal = '.')
     nome_estacao = estacao
     Percentil = 95
-    tc = 10 #tempo entre eventos distintos
+    tc = 15 #tempo entre eventos distintos
     dc = 5 #tempo minimo de evento
 
     #FORMATA SERIE ORIGINAL
-    serie_original.columns = ['data','q_bruto', 'q_m3s_corr']
-    #serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s_corr']
+    serie_original.columns = ['data','q_m3s']
+    #serie_original.columns = ['data', 'q_m3s_orig', 'q_m3s']
     serie_original['data'] = pd.to_datetime(serie_original['data'], format = '%Y-%m-%d')
     serie_original['mes-dia'] = pd.to_datetime(serie_original['data'],
                                                format = "%Y-%m-%d").dt.strftime("%m-%d")
@@ -51,7 +51,7 @@ for estacao in estacoes:
         for indice in serie_original.loc[(serie_original["mes"] == mes) & (serie_original["dia"] == dia)].index:
             base_31dias = serie_original.iloc[indice-15:indice+16,:].dropna()
             Serie_Threshold = pd.concat([Serie_Threshold,base_31dias])
-        Thresholds.loc[d,Q_Percentil] = np.percentile(Serie_Threshold['q_m3s_corr'], 100-Percentil)
+        Thresholds.loc[d,Q_Percentil] = np.percentile(Serie_Threshold['q_m3s'], 100-Percentil)
     print(Thresholds)
 
     #EXPORTA THRESHOLD
@@ -62,7 +62,7 @@ for estacao in estacoes:
     serie_modificada.drop(serie_modificada[serie_modificada['mes-dia'] == '02-29'].index, inplace = True)
     for i in serie_modificada.index:
         serie_modificada.loc[i,Q_Percentil] = Thresholds.loc[Thresholds['mes-dia'] == serie_modificada.loc[i,'mes-dia']].iloc[0,2]
-    serie_modificada[deficit_diario] = serie_modificada[Q_Percentil] - serie_modificada['q_m3s_corr']
+    serie_modificada[deficit_diario] = serie_modificada[Q_Percentil] - serie_modificada['q_m3s']
 
     eventos_deficit = pd.DataFrame(columns = ['data_inicio', 'data_final', 'duracao', deficit_total])
     indiceLinhaEvento = 0
@@ -109,11 +109,17 @@ for estacao in estacoes:
         else:
             indexEventoAgrupado = indexEventoAgrupado + 1
             eventos_agrupados.loc[indexEventoAgrupado] = eventos_deficit.loc[indice]
+
     eventos_agrupados.drop(eventos_agrupados[eventos_agrupados['duracao'] <= dc].index, inplace = True)
     eventos_agrupados = eventos_agrupados.reset_index(drop=True)
+    for i in eventos_agrupados.index:
+        eventos_agrupados.loc[i,'duracao'] = (eventos_agrupados.loc[i,'data_final'] - eventos_agrupados.loc[i,'data_inicio']).days
 
     #EXPORTA EVENTOS IDENTIFICADOS
-    eventos_agrupados.to_csv(nome_estacao+'_eventos_agrupados_'+Q_Percentil+'.csv')
+    eventos_agrupados.to_csv(nome_estacao+'_eventos_agrupados_'+Q_Percentil+'.csv', index = False)
+    serie_modificada.to_csv(nome_estacao+'_historico_comparacao_'+Q_Percentil+'.csv', index = False)
+
+
 
 #CALCULO CDF
 CDF = pd.DataFrame()
@@ -132,3 +138,22 @@ plt.ylabel('CDF Exponencial')
 
 CDF.to_csv(nome_estacao+'_CDF_exponencial_'+Q_Percentil+'.csv')
 plt.savefig(nome_estacao+'_CDF_Exponencial_'+Q_Percentil+'.png', dpi = 300)
+
+
+#PRINT DEFICIT PERIODO
+
+for estacao in estacoes:
+    serie_modificada = pd.read_csv(estacao+'_historico_comparacao_'+Q_Percentil+'.csv', sep = ',', decimal = '.')
+    serie_modificada['data'] = pd.to_datetime(serie_modificada['data'])
+    serie_modificada = serie_modificada.set_index(pd.DatetimeIndex(serie_modificada['data']))
+    plt.figure()
+    plt.plot(serie_modificada.loc['2019':'2020','q_m3s'], label = "Observado", linewidth = 0.8)
+    plt.plot(serie_modificada.loc['2019':'2020','Q'+str(Percentil)], label = "Q"+str(Percentil), linewidth = 0.5)
+    plt.legend(loc='best')
+    plt.title('Comparacao Medicoes '+estacao)
+    plt.xlabel('Data')
+    plt.ylabel('Q - m3s-1')
+    plt.savefig(estacao+'_deficits_q'+str(Percentil)+'.png', dpi = 300)
+    plt.close()
+
+serie_modificada
