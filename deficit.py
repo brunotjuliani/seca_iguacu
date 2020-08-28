@@ -22,11 +22,7 @@ for estacao in estacoes:
     nome_estacao = estacao
     Percentil = 95
     tc = 15 #tempo entre eventos distintos
-<<<<<<< HEAD
     dc = 15 #tempo minimo de evento
-=======
-    dc = 5 #tempo minimo de evento
->>>>>>> f0187716ba661028c3d354a832c907bba72d3b7e
 
     #FORMATA SERIE ORIGINAL
     serie_original.columns = ['data','q_m3s']
